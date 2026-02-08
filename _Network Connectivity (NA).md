@@ -2530,6 +2530,8 @@ conf t
   end
 ~~~
 
+<br>
+
 ~~~
 !@R1
 show ip route
@@ -2575,6 +2577,9 @@ show ip route
 INSIDE GLOBAL     INSIDE LOCAL         OUTSIDE LOCAL      OUTSIDE GLOBAL
 ~~~
 
+<br>
+<br>
+
 Step 1: Define INSIDE and OUTSIDE
 
 ~~~
@@ -2589,6 +2594,7 @@ conf t
 ~~~
 
 <br>
+<br>
 
 Step 2: Create an ACL to match traffic
 
@@ -2602,6 +2608,7 @@ conf t
 ~~~
 
 <br>
+<br>
 
 Step 3: Configure desired NAT
 
@@ -2609,9 +2616,9 @@ Step 3: Configure desired NAT
 ~~~
 !@R1
 conf t
- ip nat inside source static 10.1.1.2 209.9.9.1 
- ip nat inside source static 10.1.1.6 209.9.9.2
- ip nat inside source static 10.1.1.10 209.9.9.3
+ ip nat inside source static 10.1.1.2 209.9.9.2 
+ ip nat inside source static 10.1.1.6 209.9.9.3
+ ip nat inside source static 10.1.1.10 209.9.9.4
  end
 show ip nat translations
 ~~~
@@ -2627,6 +2634,8 @@ show ip nat translations
 ping 8.8.8.8
 ~~~
 
+<br>
+
 Can all of them ping 8.8.8.8? If not, explain why.
 
 <br>
@@ -2635,81 +2644,98 @@ Can all of them ping 8.8.8.8? If not, explain why.
 !@R1
 clear ip nat translation *
 conf t
- no ip nat inside source static 10.1.1.10 209.9.9.3
- ip nat inside source static 10.1.1.10 209.9.9.4
+ no ip nat inside source static 10.1.1.6 209.9.9.3
+ ip nat inside source static 10.1.1.6 209.9.9.5
  end
 show ip nat translations
 ~~~
 
+<br>
+<br>
 
-Exercise 18: Configure Static NAT to output the following:
+&nbsp;
+---
+&nbsp;
 
-Pro  INSIDE GLOBAL    INSIDE LOCAL 
----  207.7.7.1        192.168.1.131
-icmp 207.7.7.1:x      192.168.1.131:x
----  208.8.8.45       10.1.4.10
-icmp 208.8.8.45:x     10.1.4.10:x
----  209.9.9.99       3.3.3.3
-icmp 209.9.9.99:x     3.3.3.3:x
+### 🎯 Exercise 19: Configure Static NAT for the following devices:
 
-Tip:
+(D1) 10.1.4.6 = 208.8.8.x
+(D2) 10.1.4.10 = 207.7.7.x
 
-192.168.1.131 = A1
-10.1.4.10 = D2
-3.3.3.3 = R3
-
+~~~
 !@R1
 conf t
- ip nat inside source static 192.168.1.131 207.7.7.1
- ip nat inside source static 10.1.4.10 208.8.8.45
- ip nat inside source static 3.3.3.3 209.9.9.99
+ ip nat inside source static __.__.__.__  __.__.__.__
+ ip nat inside source static __.__.__.__  __.__.__.__
  end 
+~~~
 
 
-Verify with a ping to 8.8.8.8 on the 3 devices, 
+<br>
+
+Verify with a ping to 8.8.8.8 on the devices, 
 then use the show command to reveal translated IPs on R1.
 
+<br>
+<br>
 
-
-!@R1
-conf t
- ip nat inside source static 192.168.1.131 207.7.7.1
- ip nat inside source static 10.1.4.10 208.8.8.45
- ip nat inside source static 3.3.3.3 209.9.9.99
- end 
-show ip nat translations
-
-
-Ans
-
-!@R1
-conf t
- ip nat inside source static 10.1.4.10 207.7.7.1
- end
-show ip nat translations
-
-
+&nbsp;
 ---
+&nbsp;
 
-Dynamic NAT or 1:Many
+### ANSWER
 
-Create a pool of addresses
+<details>
+<summary>Show Answer</summary>
 
+~~~
 !@R1
 conf t
- ip nat pool mynatpool 209.9.9.4 209.9.9.254 netmask 255.255.255.0
- ip nat inside source list 1 pool mynatpool
- end
+ ip nat inside source static 10.1.4.6  208.8.8.101
+ ip nat inside source static 10.1.4.10  207.7.7.102
+ end 
+~~~
 
+</details>
+
+<br>
+<br>
+
+&nbsp;
+---
+&nbsp;
+
+
+### Dynamic NAT
+Step 1: Configure a NAT Pool
+~~~
+!@R1
+conf t
+ ip nat pool NATPOOL 208.8.8.10 208.8.8.20 netmask 255.255.255.0
+ ip nat inside source list 1 pool NATPOOL
+ end
+~~~
+
+<br>
 
 Verify:
-
-!@A2
+~~~
+!@A1, A2
 ping 8.8.8.8
+~~~
+
+<br>
+<br>
+
+&nbsp;
+---
+&nbsp;
+
+### PAT 1:Many
 
 
 
-Exercise 19: Determine why D1 failed to ping 8.8.8.8 with a source IP of 10.2.1.1
+
 
 !@D1
 ping 8.8.8.8 source 10.2.1.1
